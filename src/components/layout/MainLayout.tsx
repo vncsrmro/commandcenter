@@ -1,29 +1,39 @@
-import { Outlet } from 'react-router-dom'
-import { Sidebar } from './Sidebar'
-import { MobileNav } from './MobileNav'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 
 export function MainLayout() {
-    return (
-        <div className="flex min-h-screen min-h-[100dvh]">
-            {/* Desktop Sidebar */}
-            <div className="hidden md:block">
-                <Sidebar />
-            </div>
+    const location = useLocation()
+    const navigate = useNavigate()
+    const isDashboard = location.pathname === '/'
 
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col w-full overflow-hidden">
-                <div className="flex-1 overflow-y-auto pb-24 md:pb-6">
-                    <Outlet />
+    return (
+        <div className="min-h-screen flex flex-col items-center py-6 px-4 md:py-10">
+            {/* Mobile Back Button (Clean) */}
+            {!isDashboard && (
+                <div className="w-full max-w-6xl mb-4 flex items-center">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-white/10 px-4 py-2 rounded-full backdrop-blur-md"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span className="font-medium">Início</span>
+                    </button>
                 </div>
+            )}
+
+            {/* Main Content Area - Max width for desktop */}
+            <main className="w-full max-w-6xl animate-pop">
+                <Outlet />
             </main>
 
-            {/* Mobile Bottom Navigation */}
-            <MobileNav />
-
-            {/* Mobile Menu Trigger (from Sidebar) */}
-            <div className="md:hidden">
-                <Sidebar />
-            </div>
+            {/* Footer Branding */}
+            <footer className="mt-12 text-center">
+                <p className="text-[11px] text-white/30 font-medium">
+                    Desenvolvido com 💗 pela InovaSys
+                    <br />
+                    <a href="https://inovasys.digital" target="_blank" className="hover:text-white/50 transition-colors">inovasys.digital</a>
+                </p>
+            </footer>
         </div>
     )
 }
