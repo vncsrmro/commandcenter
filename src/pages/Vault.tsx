@@ -13,6 +13,7 @@ import {
 import { useVault } from '@/hooks/useVault'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 export function Vault() {
     const { credentials, loading, error, createCredential, deleteCredential } = useVault()
@@ -101,13 +102,12 @@ export function Vault() {
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button
+                    <Button
                         onClick={() => setIsModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors whitespace-nowrap"
+                        icon={<Plus className="w-4 h-4" />}
                     >
-                        <Plus className="w-4 h-4" />
                         <span className="hidden md:inline">Nova Credencial</span>
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -153,20 +153,20 @@ export function Vault() {
                         </div>
 
                         {/* Password Actions */}
-                        <div className="w-full md:w-auto flex items-center justify-end gap-2 bg-[#09090b] p-1.5 rounded-lg border border-[#27272a]">
+                        <div className="w-full md:w-auto flex items-center justify-end gap-2 bg-[#09090b]/50 p-1.5 rounded-lg border border-[#27272a] backdrop-blur-sm">
                             <span className="font-mono text-xs text-white min-w-[100px] text-right px-2 py-1">
                                 {visible[cred.id] ? cred.password_encrypted : '••••••••••••'}
                             </span>
                             <div className="flex border-l border-[#27272a] pl-1 gap-1">
-                                <button onClick={() => toggleVis(cred.id)} className="p-1.5 hover:bg-[#27272a] rounded text-[#71717a] hover:text-white transition-colors" title="Toggle visibility">
+                                <Button variant="ghost" onClick={() => toggleVis(cred.id)} className="h-7 w-7 p-0" title="Toggle visibility">
                                     {visible[cred.id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                </button>
-                                <button onClick={() => copyToClipboard(cred.password_encrypted)} className="p-1.5 hover:bg-[#27272a] rounded text-[#71717a] hover:text-white transition-colors" title="Copy password">
+                                </Button>
+                                <Button variant="ghost" onClick={() => copyToClipboard(cred.password_encrypted)} className="h-7 w-7 p-0" title="Copy password">
                                     <Copy className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => handleDelete(cred.id)} className="p-1.5 hover:bg-red-500/10 rounded text-[#71717a] hover:text-red-500 transition-colors" title="Delete">
+                                </Button>
+                                <Button variant="ghost" onClick={() => handleDelete(cred.id)} className="h-7 w-7 p-0 text-red-500 hover:bg-red-500/10" title="Delete">
                                     <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
@@ -182,20 +182,19 @@ export function Vault() {
                 description="Armazene senhas e chaves de acesso com segurança."
                 footer={
                     <>
-                        <button
+                        <Button
+                            variant="ghost"
                             onClick={() => setIsModalOpen(false)}
-                            className="px-4 py-2 text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors"
                         >
                             Cancelar
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={handleSubmit}
-                            disabled={isSubmitting}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-md transition-colors disabled:opacity-50 flex items-center gap-2"
+                            isLoading={isSubmitting}
+                            icon={<Lock className="w-4 h-4" />}
                         >
-                            {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
                             Salvar Credencial
-                        </button>
+                        </Button>
                     </>
                 }
             >

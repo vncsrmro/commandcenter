@@ -1,103 +1,135 @@
-/* ============================================
-   PaperX "Pro" Design System
-   Functional, High-Contrast, Data-First
-   ============================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-:root {
-  /* Functional Palette - "Pro" High Contrast */
-  --bg-app: #09090b;       /* Zinc 950 */
-  --bg-surface: #101012;   /* Slightly lighter than app bg for distinct surfaces */
-  --bg-surface-hover: #18181b; /* Zinc 900 */
+@layer base {
+  :root {
+    /* --- Premium Dark Theme Tokens --- */
 
-  --border-subtle: #27272a;    /* Zinc 800 */
-  --border-highlight: #3f3f46; /* Zinc 700 */
+    /* Backgrounds */
+    --bg-background: #050505;
+    /* Deepest black */
+    --bg-surface: #0a0a0a;
+    /* Slightly lighter for cards */
+    --bg-surface-hover: #121212;
 
-  /* Brand Accents - Professional Blue (Indigo-ish) */
-  --brand-primary: #3b82f6;
-  --brand-glow: rgba(59, 130, 246, 0.1);
+    /* Borders */
+    --border-subtle: #27272a;
+    --border-highlight: #3f3f46;
 
-  /* Semantic / Text */
-  --text-main: #fafafa;    /* Zinc 50 */
-  --text-muted: #a1a1aa;   /* Zinc 400 */
-  --text-dim: #52525b;     /* Zinc 600 */
+    /* Text */
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #52525b;
 
-  /* Status Colors (Muted/Professional) */
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
+    /* Accents (Neon/Vibrant) */
+    --accent-blue: #3b82f6;
+    --accent-purple: #8b5cf6;
+    --accent-emerald: #10b981;
+    --accent-orange: #f97316;
 
-  /* Spacing & Radii */
-  --radius-card: 8px;      /* Tighter radius for "Technical/Pro" feel */
-  --radius-sm: 4px;        /* Very tight */
+    /* Glassmorphism Variables */
+    --glass-bg: rgba(10, 10, 10, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: 12px;
+
+    /* Radius */
+    --radius-card: 16px;
+    --radius-btn: 12px;
+  }
+
+  body {
+    @apply bg-[var(--bg-background)] text-[var(--text-primary)] antialiased font-sans selection:bg-blue-500/30 selection:text-blue-200;
+  }
 }
 
-/* ============================================
-   Base Reset
-   ============================================ */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+@layer utilities {
+  /* --- Premium Utilities --- */
+
+  /* Glassmorphism */
+  .glass-modal {
+    background: rgba(15, 15, 20, 0.85);
+    /* Darker, richer glass */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+  }
+
+  /* Text Gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-neutral-400;
+  }
+
+  .text-gradient-blue {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors;
+  }
+
+  /* Animation Utilities */
+  .animate-enter {
+    animation: enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: 'Inter', -apple-system, sans-serif;
-  background-color: var(--bg-app);
-  color: var(--text-main);
-  -webkit-font-smoothing: antialiased;
-  accent-color: var(--brand-primary);
-}
-
-/* ============================================
-   Components
-   ============================================ */
-
-/* Pro Card - Minimalist container */
+/* --- Components --- */
 .pro-card {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  overflow: hidden;
+  @apply bg-[#0a0a0a] border border-[#27272a] rounded-2xl relative overflow-hidden transition-all duration-300;
 }
 
-/* Typography Helpers */
-.font-mono {
-  font-family: 'JetBrains Mono', monospace;
+.pro-card::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 transition-opacity duration-300 pointer-events-none;
 }
 
-.text-value {
-  font-feature-settings: "tnum";
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+.pro-card:hover::after {
+  @apply opacity-100;
 }
 
-/* Mobile Touch Optimizations */
-.touch-target {
-  min-height: 44px;
-}
-
-/* Animations */
-.animate-enter {
-  animation: enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
+/* --- Keyframes --- */
 @keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: scale(0.98) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Smooth Scroll */
-html {
-  scroll-behavior: smooth;
 }

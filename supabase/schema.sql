@@ -29,12 +29,12 @@ CREATE INDEX idx_clients_slug ON clients(slug);
 -- ============================================
 -- 2. TABELA DE CREDENCIAIS (Cofre de Senhas)
 -- ============================================
-CREATE TABLE credentials (
+CREATE TABLE vault_credentials (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  client_id UUID REFERENCES clients(id) ON DELETE SET NULL, -- Opcional, pode ser 'global'
   title VARCHAR(255) NOT NULL,
   username VARCHAR(255) NOT NULL,
-  password TEXT NOT NULL, -- Em produção, use criptografia
+  password_encrypted TEXT NOT NULL, -- Correspondendo ao frontend
   url VARCHAR(500),
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -42,7 +42,7 @@ CREATE TABLE credentials (
 );
 
 -- Index
-CREATE INDEX idx_credentials_client ON credentials(client_id);
+CREATE INDEX idx_vault_credentials_client ON vault_credentials(client_id);
 
 -- ============================================
 -- 3. TABELA DE TRANSAÇÕES FINANCEIRAS
@@ -81,61 +81,31 @@ CREATE TRIGGER clients_updated_at
   BEFORE UPDATE ON clients
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER credentials_updated_at
-  BEFORE UPDATE ON credentials
+CREATE TRIGGER vault_credentials_updated_at
+  BEFORE UPDATE ON vault_credentials
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER transactions_updated_at
-  BEFORE UPDATE ON transactions
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+-- ...
 
--- ============================================
--- 5. ROW LEVEL SECURITY (RLS)
--- ============================================
-
--- Habilitar RLS
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE credentials ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-
--- Políticas permissivas para usuários autenticados
--- (Ajuste conforme necessário para multi-tenancy)
-
-CREATE POLICY "Allow all for authenticated users" ON clients
+CREATE POLICY "Allow all for authenticated users" ON vault_credentials
   FOR ALL USING (true);
 
-CREATE POLICY "Allow all for authenticated users" ON credentials
-  FOR ALL USING (true);
-
-CREATE POLICY "Allow all for authenticated users" ON transactions
-  FOR ALL USING (true);
-
--- ============================================
--- 6. DADOS DE EXEMPLO (OPCIONAL)
--- ============================================
-
--- Clientes
-INSERT INTO clients (name, slug, status, plan, due_date, monthly_value, notes) VALUES
-  ('Tech Solutions', 'tech-solutions', 'active', 'professional', '2024-01-20', 599.00, 'Cliente desde 2022'),
-  ('Digital Agency', 'digital-agency', 'active', 'enterprise', '2024-01-22', 899.00, NULL),
-  ('StartupX', 'startupx', 'active', 'essential', '2024-01-25', 349.00, NULL),
-  ('Old Corp', 'old-corp', 'blocked', 'professional', '2024-01-10', 599.00, 'Inadimplente - aguardando pagamento'),
-  ('Closed Business', 'closed-business', 'cancelled', 'essential', '2023-12-01', 349.00, 'Encerrou atividades');
+-- ...
 
 -- Credenciais (exemplo)
-INSERT INTO credentials (client_id, title, username, password, url, notes)
+INSERT INTO vault_credentials (client_id, title, username, password_encrypted, url, notes)
 SELECT id, 'Painel Admin', 'admin@' || slug || '.com', 'S3cur3P@ss!', 'https://' || slug || '.com/admin', 'Acesso principal'
 FROM clients WHERE slug = 'tech-solutions';
 
-INSERT INTO credentials (client_id, title, username, password, url, notes)
+INSERT INTO vault_credentials (client_id, title, username, password_encrypted, url, notes)
 SELECT id, 'Banco de Dados', 'db_admin', 'Db@dmin2024!', 'mysql://db.' || slug || '.com:3306', NULL
 FROM clients WHERE slug = 'tech-solutions';
 
-INSERT INTO credentials (client_id, title, username, password, url, notes)
+INSERT INTO vault_credentials (client_id, title, username, password_encrypted, url, notes)
 SELECT id, 'Hostinger SSH', 'u123456789', 'H0st!ng3r2024', 'ssh://premium123.hostinger.com', 'Porta 22'
 FROM clients WHERE slug = 'digital-agency';
 
-INSERT INTO credentials (client_id, title, username, password, url, notes)
+INSERT INTO vault_credentials (client_id, title, username, password_encrypted, url, notes)
 SELECT id, 'AWS Console', 'startupx-admin', 'Aws@StartupX!', 'https://console.aws.amazon.com', 'Região us-east-1'
 FROM clients WHERE slug = 'startupx';
 

@@ -14,6 +14,7 @@ import {
 import { useClients } from '@/hooks/useClients'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Select } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -115,13 +116,12 @@ export function Clients() {
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button
+                    <Button
                         onClick={() => setIsModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors whitespace-nowrap"
+                        icon={<Plus className="w-4 h-4" />}
                     >
-                        <Plus className="w-4 h-4" />
                         <span className="hidden md:inline">Novo</span>
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -182,16 +182,20 @@ export function Clients() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-right flex gap-1 justify-end">
-                                        <button
+                                        <Button
+                                            variant="ghost"
                                             onClick={() => handleDelete(client.id)}
-                                            className="p-1.5 hover:bg-red-500/10 rounded text-[#71717a] hover:text-red-500 transition-colors"
+                                            className="h-8 w-8 p-0 text-[#71717a] hover:text-red-500"
                                             title="Remover"
                                         >
                                             <Trash2 className="w-4 h-4" />
-                                        </button>
-                                        <button className="p-1.5 hover:bg-[#27272a] rounded text-[#71717a] hover:text-white transition-colors">
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0 text-[#71717a] hover:text-white"
+                                        >
                                             <MoreHorizontal className="w-4 h-4" />
-                                        </button>
+                                        </Button>
                                     </td>
                                 </tr>
                             )
@@ -250,12 +254,13 @@ export function Clients() {
                                     <span>Vence dia <span className="text-white font-mono">{formatDate(client.due_date)}</span></span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <button
+                                    <Button
+                                        variant="ghost"
                                         onClick={() => handleDelete(client.id)}
-                                        className="p-1.5 hover:bg-[#27272a] rounded text-[#a1a1aa] hover:text-white transition-colors"
+                                        className="h-8 w-8 p-0 text-[#71717a] hover:text-white"
                                     >
                                         <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -271,20 +276,19 @@ export function Clients() {
                 description="Preencha os dados da empresa para criar um novo tenant."
                 footer={
                     <>
-                        <button
+                        <Button
+                            variant="ghost"
                             onClick={() => setIsModalOpen(false)}
-                            className="px-4 py-2 text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors"
                         >
                             Cancelar
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={handleSubmit}
-                            disabled={isSubmitting}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-md transition-colors disabled:opacity-50 flex items-center gap-2"
+                            isLoading={isSubmitting}
+                            icon={<Plus className="w-4 h-4" />}
                         >
-                            {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
                             Criar Cliente
-                        </button>
+                        </Button>
                     </>
                 }
             >
