@@ -4,6 +4,7 @@ import { Dashboard } from '@/pages/Dashboard'
 import { Clients } from '@/pages/Clients'
 import { Vault } from '@/pages/Vault'
 import { Financial } from '@/pages/Financial'
+import { Login } from '@/pages/Login'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="vault" element={<Vault />} />
           <Route path="financial" element={<Financial />} />
         </Route>
+        <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
   )

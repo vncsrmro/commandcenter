@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
     isOpen: boolean
@@ -21,7 +22,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
 
     if (!isOpen) return null
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop with Blur */}
             <div
@@ -30,25 +31,25 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
             />
 
             {/* Content: Glassmorphism */}
-            <div className="relative z-10 w-full max-w-lg glass-modal rounded-2xl overflow-hidden animate-enter border border-white/10">
+            <div className="relative z-10 w-full max-w-lg glass-modal rounded-2xl overflow-hidden animate-enter border border-white/10 shadow-2xl">
 
                 {/* Header Gradient Border Check */}
-                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-50" />
+                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--accent-blue)]/50 to-transparent opacity-50" />
 
                 <div className="flex items-center justify-between p-6">
                     <div>
-                        <h2 className="text-xl font-bold text-white tracking-tight">{title}</h2>
-                        {description && <p className="text-sm text-[#a1a1aa] mt-1">{description}</p>}
+                        <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">{title}</h2>
+                        {description && <p className="text-sm text-[var(--text-secondary)] mt-1">{description}</p>}
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-[#71717a] hover:text-white transition-colors rounded-lg hover:bg-white/5"
+                        className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors rounded-lg hover:bg-white/5"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="p-6 pt-2 max-h-[70vh] overflow-y-auto">
+                <div className="p-6 pt-2 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     {children}
                 </div>
 
@@ -58,6 +59,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer }:
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }
