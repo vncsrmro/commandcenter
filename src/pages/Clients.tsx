@@ -7,11 +7,13 @@ import {
     CheckCircle2,
     AlertCircle,
     XCircle,
-    Pencil,
+    Trash2,
     Loader2,
     MoreHorizontal
 } from 'lucide-react'
 import { useClients } from '@/hooks/useClients'
+import { Modal } from '@/components/ui/Modal'
+import { Input, Select } from '@/components/ui/input'
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -23,16 +25,57 @@ function formatDate(dateString: string) {
 }
 
 export function Clients() {
-    const { clients, loading, error } = useClients()
+    const { clients, loading, error, createClient, deleteClient } = useClients()
     const [searchTerm, setSearchTerm] = useState('')
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Form State
+    const [formData, setFormData] = useState({
+        name: '',
+        slug: '',
+        status: 'active' as 'active' | 'blocked' | 'cancelled',
+        plan: 'essential' as 'essential' | 'professional' | 'enterprise',
+        due_date: new Date().toISOString().split('T')[0],
+        monthly_value: 0,
+        notes: ''
+    })
 
     const filtered = clients.filter((c) =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.slug.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    const handleNew = () => {
-        alert('Create functionality coming in next update')
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            setIsSubmitting(true)
+            await createClient({
+                ...formData,
+                monthly_value: Number(formData.monthly_value)
+            })
+            setIsModalOpen(false)
+            setFormData({
+                name: '',
+                slug: '',
+                status: 'active',
+                plan: 'essential',
+                due_date: new Date().toISOString().split('T')[0],
+                monthly_value: 0,
+                notes: ''
+            })
+        } catch (err) {
+            alert('Erro ao criar cliente. Verifique o console.')
+            console.error(err)
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleDelete = async (id: string) => {
+        if (confirm('Tem certeza que deseja remover este cliente?')) {
+            await deleteClient(id)
+        }
     }
 
     if (loading) {
@@ -73,7 +116,7 @@ export function Clients() {
                         />
                     </div>
                     <button
-                        onClick={handleNew}
+                        onClick={() => setIsModalOpen(true)}
                         className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors whitespace-nowrap"
                     >
                         <Plus className="w-4 h-4" />
@@ -92,7 +135,7 @@ export function Clients() {
                             <th className="px-4 py-3 font-medium">Plano</th>
                             <th className="px-4 py-3 font-medium text-right">Mensalidade</th>
                             <th className="px-4 py-3 font-medium text-right">Vencimento</th>
-                            <th className="px-4 py-3 font-medium w-[50px]"></th>
+                            <th className="px-4 py-3 font-medium w-[80px]"></th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#27272a]">
@@ -138,7 +181,14 @@ export function Clients() {
                                             Day {new Date(client.due_date).getDate()}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 text-right">
+                                    <td className="px-4 py-3 text-right flex gap-1 justify-end">
+                                        <button
+                                            onClick={() => handleDelete(client.id)}
+                                            className="p-1.5 hover:bg-red-500/10 rounded text-[#71717a] hover:text-red-500 transition-colors"
+                                            title="Remover"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                         <button className="p-1.5 hover:bg-[#27272a] rounded text-[#71717a] hover:text-white transition-colors">
                                             <MoreHorizontal className="w-4 h-4" />
                                         </button>
@@ -200,8 +250,11 @@ export function Clients() {
                                     <span>Vence dia <span className="text-white font-mono">{formatDate(client.due_date)}</span></span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <button className="p-1.5 hover:bg-[#27272a] rounded text-[#a1a1aa] hover:text-white transition-colors">
-                                        <Pencil className="w-4 h-4" />
+                                    <button
+                                        onClick={() => handleDelete(client.id)}
+                                        className="p-1.5 hover:bg-[#27272a] rounded text-[#a1a1aa] hover:text-white transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
@@ -209,6 +262,92 @@ export function Clients() {
                     )
                 })}
             </div>
+
+            {/* Create Client Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title="Novo Cliente"
+                description="Preencha os dados da empresa para criar um novo tenant."
+                footer={
+                    <>
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-4 py-2 text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-md transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                            Criar Cliente
+                        </button>
+                    </>
+                }
+            >
+                <form className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="Nome da Empresa"
+                            placeholder="Ex: PaperX Inc."
+                            value={formData.name}
+                            onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
+                        />
+                        <Input
+                            label="Slug / ID"
+                            placeholder="Ex: paperx"
+                            value={formData.slug}
+                            onChange={e => setFormData(p => ({ ...p, slug: e.target.value }))}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Select
+                            label="Plano"
+                            options={[
+                                { value: 'essential', label: 'Essencial' },
+                                { value: 'profissional', label: 'Profissional' },
+                                { value: 'enterprise', label: 'Enterprise' }
+                            ]}
+                            value={formData.plan}
+                            onChange={e => setFormData(p => ({ ...p, plan: e.target.value as 'essential' | 'professional' | 'enterprise' }))}
+                        />
+                        <Select
+                            label="Status"
+                            options={[
+                                { value: 'active', label: 'Ativo' },
+                                { value: 'blocked', label: 'Bloqueado' },
+                                { value: 'cancelled', label: 'Cancelado' }
+                            ]}
+                            value={formData.status}
+                            onChange={e => setFormData(p => ({ ...p, status: e.target.value as 'active' | 'blocked' | 'cancelled' }))}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="Valor Mensal (R$)"
+                            type="number"
+                            placeholder="0.00"
+                            value={formData.monthly_value}
+                            onChange={e => setFormData(p => ({ ...p, monthly_value: Number(e.target.value) }))}
+                        />
+                        <Input
+                            label="Data Vencimento"
+                            type="date"
+                            value={formData.due_date}
+                            onChange={e => setFormData(p => ({ ...p, due_date: e.target.value }))}
+                        />
+                    </div>
+                    <Input
+                        label="Observações"
+                        placeholder="Notas internas..."
+                        value={formData.notes}
+                        onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))}
+                    />
+                </form>
+            </Modal>
         </div>
     )
 }

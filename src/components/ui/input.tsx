@@ -1,24 +1,48 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import { forwardRef } from 'react'
 
-export interface InputProps
-    extends React.InputHTMLAttributes<HTMLInputElement> { }
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    label?: string
+    error?: string
+}
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, type, ...props }, ref) => {
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+    ({ label, error, className = '', ...props }, ref) => {
         return (
-            <input
-                type={type}
-                className={cn(
-                    "flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm text-[hsl(var(--foreground))] ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200",
-                    className
-                )}
-                ref={ref}
-                {...props}
-            />
+            <div className="space-y-1.5">
+                {label && <label className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">{label}</label>}
+                <input
+                    ref={ref}
+                    className={`w-full bg-[#18181b] border border-[#27272a] rounded-md px-3 py-2 text-sm text-white placeholder:text-[#52525b] focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all ${error ? 'border-red-500/50' : ''} ${className}`}
+                    {...props}
+                />
+                {error && <p className="text-xs text-red-500">{error}</p>}
+            </div>
         )
     }
 )
-Input.displayName = "Input"
 
-export { Input }
+interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+    label?: string
+    error?: string
+    options: { value: string; label: string }[]
+}
+
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
+    ({ label, error, options, className = '', ...props }, ref) => {
+        return (
+            <div className="space-y-1.5">
+                {label && <label className="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">{label}</label>}
+                <select
+                    ref={ref}
+                    className={`w-full bg-[#18181b] border border-[#27272a] rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all ${className}`}
+                    {...props}
+                >
+                    {options.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </select>
+                {error && <p className="text-xs text-red-500">{error}</p>}
+            </div>
+        )
+    }
+)
