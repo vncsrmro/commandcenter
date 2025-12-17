@@ -18,6 +18,7 @@ export type DatabaseClient = {
     plan: 'essential' | 'professional' | 'enterprise'
     due_date: string
     monthly_value: number
+    domains?: string[] // Stores array of domains e.g. ["example.com", "app.example.com"]
     notes?: string
     created_at: string
 }

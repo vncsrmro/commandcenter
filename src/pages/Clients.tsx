@@ -9,7 +9,9 @@ import {
     XCircle,
     Trash2,
     Loader2,
-    MoreHorizontal
+    MoreHorizontal,
+    Globe,
+    AlertTriangle
 } from 'lucide-react'
 import { useClients } from '@/hooks/useClients'
 import { Modal } from '@/components/ui/Modal'
@@ -39,6 +41,7 @@ export function Clients() {
         plan: 'essential' as 'essential' | 'professional' | 'enterprise',
         due_date: new Date().toISOString().split('T')[0],
         monthly_value: 0,
+        domains: '', // Comma separated string for input
         notes: ''
     })
 
@@ -53,7 +56,8 @@ export function Clients() {
             setIsSubmitting(true)
             await createClient({
                 ...formData,
-                monthly_value: Number(formData.monthly_value)
+                monthly_value: Number(formData.monthly_value),
+                domains: formData.domains.split(',').map(d => d.trim()).filter(Boolean)
             })
             setIsModalOpen(false)
             setFormData({
@@ -63,6 +67,7 @@ export function Clients() {
                 plan: 'essential',
                 due_date: new Date().toISOString().split('T')[0],
                 monthly_value: 0,
+                domains: '',
                 notes: ''
             })
         } catch (err) {
@@ -134,8 +139,9 @@ export function Clients() {
                             <th className="px-4 py-3 font-medium">Status</th>
                             <th className="px-4 py-3 font-medium">Plano</th>
                             <th className="px-4 py-3 font-medium text-right">Mensalidade</th>
+                            <th className="px-4 py-3 font-medium">Domínios</th>
                             <th className="px-4 py-3 font-medium text-right">Vencimento</th>
-                            <th className="px-4 py-3 font-medium w-[80px]"></th>
+                            <th className="px-4 py-3 font-medium w-[80px]"></th> // Empty Header
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#27272a]">
@@ -175,8 +181,25 @@ export function Clients() {
                                     <td className="px-4 py-3 text-right font-mono text-[#a1a1aa] group-hover:text-white transition-colors">
                                         {formatCurrency(client.monthly_value)}
                                     </td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex flex-col gap-1">
+                                            {client.domains && client.domains.length > 0 ? (
+                                                client.domains.map((d, i) => (
+                                                    <a key={i} href={`https://${d}`} target="_blank" rel="noreferrer" className="text-xs text-[var(--accent-blue)] hover:underline flex items-center gap-1">
+                                                        <Globe className="w-3 h-3" />
+                                                        {d}
+                                                    </a>
+                                                ))
+                                            ) : (
+                                                <span className="text-xs text-[var(--text-muted)]">-</span>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td className="px-4 py-3 text-right">
-                                        <span className="inline-flex items-center gap-1.5 text-xs text-[#71717a] bg-[#18181b] px-2 py-1 rounded border border-[#27272a]">
+                                        <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border ${new Date(client.due_date) < new Date() ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                            'text-[#71717a] bg-[#18181b] border-[#27272a]'
+                                            }`}>
+                                            {new Date(client.due_date) < new Date() && <AlertTriangle className="w-3 h-3" />}
                                             <Calendar className="w-3 h-3" />
                                             Day {new Date(client.due_date).getDate()}
                                         </span>
@@ -344,6 +367,12 @@ export function Clients() {
                             onChange={e => setFormData(p => ({ ...p, due_date: e.target.value }))}
                         />
                     </div>
+                    <Input
+                        label="Domínios (separados por vírgula)"
+                        placeholder="Ex: app.cliente.com.br, landing.cliente.com"
+                        value={formData.domains}
+                        onChange={e => setFormData(p => ({ ...p, domains: e.target.value }))}
+                    />
                     <Input
                         label="Observações"
                         placeholder="Notas internas..."
