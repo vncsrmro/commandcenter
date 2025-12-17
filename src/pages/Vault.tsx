@@ -1,26 +1,4 @@
 import { useState } from 'react'
-import { Header } from '@/components/layout/Header'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import {
     Plus,
     Search,
@@ -34,10 +12,13 @@ import {
     User,
     Lock,
     Check,
+    X,
+    Shield,
 } from 'lucide-react'
 import type { Credential } from '@/types'
+import { cn } from '@/lib/utils'
 
-// Mock data with client names
+// Mock data
 const initialCredentials: Credential[] = [
     {
         id: '1',
@@ -104,7 +85,6 @@ export function Vault() {
     const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({})
     const [copiedId, setCopiedId] = useState<string | null>(null)
 
-    // Form state
     const [formData, setFormData] = useState({
         clientId: '',
         title: '',
@@ -123,7 +103,6 @@ export function Vault() {
         return matchesSearch && matchesClient
     })
 
-    // Group by client
     const groupedCredentials = filteredCredentials.reduce((acc, cred) => {
         const key = cred.clientName || 'Sem Cliente'
         if (!acc[key]) {
@@ -227,309 +206,327 @@ export function Vault() {
     }
 
     return (
-        <div className="flex flex-col h-full">
-            <Header
-                title="Cofre de Senhas"
-                description="Gerencie credenciais de acesso dos clientes"
-            />
+        <div className="flex flex-col min-h-full">
+            {/* Header */}
+            <header className="sticky top-0 z-10 glass px-4 md:px-6 py-4">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--text-primary))]">
+                                Cofre de Senhas
+                            </h1>
+                            <p className="text-sm text-[hsl(var(--text-secondary))] hidden md:block">
+                                Credenciais de acesso dos clientes
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => handleOpenDialog()}
+                            className="btn-primary text-sm touch-target"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span className="hidden sm:inline">Nova Credencial</span>
+                        </button>
+                    </div>
 
-            <div className="flex-1 p-6 space-y-6 overflow-auto">
-                {/* Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
-                                Total de Credenciais
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{credentials.length}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
-                                Clientes com Credenciais
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-emerald-400">
-                                {Object.keys(groupedCredentials).length}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
-                                Última Atualização
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">Hoje</div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Filters and Actions */}
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                    <div className="flex flex-1 gap-3 w-full sm:w-auto">
-                        <div className="relative flex-1 max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                            <Input
+                    <div className="flex gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--text-muted))]" />
+                            <input
+                                type="text"
                                 placeholder="Buscar credencial..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9"
+                                className="input-modern pl-10"
                             />
                         </div>
-                        <Select value={clientFilter} onValueChange={setClientFilter}>
-                            <SelectTrigger className="w-48">
-                                <SelectValue placeholder="Filtrar por cliente" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos os clientes</SelectItem>
-                                {mockClients.map((client) => (
-                                    <SelectItem key={client.id} value={client.id}>
-                                        {client.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <select
+                            value={clientFilter}
+                            onChange={(e) => setClientFilter(e.target.value)}
+                            className="input-modern w-auto min-w-[140px]"
+                        >
+                            <option value="all">Todos</option>
+                            {mockClients.map((client) => (
+                                <option key={client.id} value={client.id}>
+                                    {client.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
+                </div>
+            </header>
 
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button onClick={() => handleOpenDialog()}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Nova Credencial
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
-                            <DialogHeader>
-                                <DialogTitle>
-                                    {editingCredential ? 'Editar Credencial' : 'Nova Credencial'}
-                                </DialogTitle>
-                                <DialogDescription>
-                                    {editingCredential
-                                        ? 'Atualize as informações da credencial.'
-                                        : 'Adicione uma nova credencial de acesso.'}
-                                </DialogDescription>
-                            </DialogHeader>
+            {/* Summary */}
+            <div className="px-4 md:px-6 py-4">
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="glass-card rounded-xl p-4 text-center">
+                        <p className="text-2xl font-bold text-[hsl(var(--text-primary))]">{credentials.length}</p>
+                        <p className="text-xs text-[hsl(var(--text-muted))]">Credenciais</p>
+                    </div>
+                    <div className="glass-card rounded-xl p-4 text-center">
+                        <p className="text-2xl font-bold text-emerald-400">{Object.keys(groupedCredentials).length}</p>
+                        <p className="text-xs text-[hsl(var(--text-muted))]">Clientes</p>
+                    </div>
+                    <div className="glass-card rounded-xl p-4 text-center flex flex-col items-center justify-center">
+                        <Shield className="w-6 h-6 text-violet-400" />
+                        <p className="text-xs text-[hsl(var(--text-muted))] mt-1">Seguro</p>
+                    </div>
+                </div>
+            </div>
 
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Cliente</label>
-                                    <Select
-                                        value={formData.clientId}
-                                        onValueChange={(v) => setFormData({ ...formData, clientId: v })}
+            {/* Credentials List */}
+            <div className="flex-1 px-4 md:px-6 pb-6 space-y-6">
+                {Object.keys(groupedCredentials).length === 0 ? (
+                    <div className="glass-card rounded-2xl">
+                        <div className="empty-state">
+                            <div className="empty-state-icon">
+                                <Key className="w-6 h-6" />
+                            </div>
+                            <p className="empty-state-title">Nenhuma credencial encontrada</p>
+                            <p className="empty-state-description">
+                                Adicione credenciais de acesso para seus clientes.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    Object.entries(groupedCredentials).map(([clientName, creds]) => (
+                        <div key={clientName} className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-600/10 flex items-center justify-center">
+                                    <Key className="w-4 h-4 text-violet-400" />
+                                </div>
+                                <h3 className="font-medium text-[hsl(var(--text-primary))]">{clientName}</h3>
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--bg-tertiary))] text-[hsl(var(--text-muted))]">
+                                    {creds.length}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {creds.map((cred, index) => (
+                                    <div
+                                        key={cred.id}
+                                        className={cn(
+                                            "glass-card rounded-2xl p-4 animate-slide-up",
+                                            `stagger-${Math.min(index + 1, 4)}`
+                                        )}
+                                        style={{ animationFillMode: 'backwards' }}
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecione o cliente" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {mockClients.map((client) => (
-                                                <SelectItem key={client.id} value={client.id}>
-                                                    {client.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        {/* Header */}
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h4 className="font-semibold text-[hsl(var(--text-primary))]">{cred.title}</h4>
+                                                {cred.url && (
+                                                    <a
+                                                        href={cred.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-xs text-[hsl(var(--accent-primary))] hover:underline flex items-center gap-1 mt-1"
+                                                    >
+                                                        <Globe className="w-3 h-3" />
+                                                        <span className="truncate max-w-[180px]">{cred.url}</span>
+                                                    </a>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => handleOpenDialog(cred)}
+                                                    className="p-1.5 rounded-lg hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5 text-[hsl(var(--text-muted))]" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(cred.id)}
+                                                    className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Username */}
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-[hsl(var(--bg-tertiary))] mb-2">
+                                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                <User className="w-4 h-4 text-[hsl(var(--text-muted))] shrink-0" />
+                                                <span className="text-sm font-mono truncate">{cred.username}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => copyToClipboard(cred.username, `user-${cred.id}`)}
+                                                className="p-1.5 rounded-lg hover:bg-[hsl(var(--bg-elevated))] transition-colors shrink-0"
+                                            >
+                                                {copiedId === `user-${cred.id}` ? (
+                                                    <Check className="w-4 h-4 text-emerald-400" />
+                                                ) : (
+                                                    <Copy className="w-4 h-4 text-[hsl(var(--text-muted))]" />
+                                                )}
+                                            </button>
+                                        </div>
+
+                                        {/* Password */}
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-[hsl(var(--bg-tertiary))]">
+                                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                <Lock className="w-4 h-4 text-[hsl(var(--text-muted))] shrink-0" />
+                                                <span className="text-sm font-mono">
+                                                    {visiblePasswords[cred.id]
+                                                        ? cred.password
+                                                        : maskPassword(cred.password)}
+                                                </span>
+                                            </div>
+                                            <div className="flex gap-1 shrink-0">
+                                                <button
+                                                    onClick={() => togglePasswordVisibility(cred.id)}
+                                                    className="p-1.5 rounded-lg hover:bg-[hsl(var(--bg-elevated))] transition-colors"
+                                                >
+                                                    {visiblePasswords[cred.id] ? (
+                                                        <EyeOff className="w-4 h-4 text-[hsl(var(--text-muted))]" />
+                                                    ) : (
+                                                        <Eye className="w-4 h-4 text-[hsl(var(--text-muted))]" />
+                                                    )}
+                                                </button>
+                                                <button
+                                                    onClick={() => copyToClipboard(cred.password, `pass-${cred.id}`)}
+                                                    className="p-1.5 rounded-lg hover:bg-[hsl(var(--bg-elevated))] transition-colors"
+                                                >
+                                                    {copiedId === `pass-${cred.id}` ? (
+                                                        <Check className="w-4 h-4 text-emerald-400" />
+                                                    ) : (
+                                                        <Copy className="w-4 h-4 text-[hsl(var(--text-muted))]" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Notes */}
+                                        {cred.notes && (
+                                            <p className="text-xs text-[hsl(var(--text-muted))] mt-3 italic">
+                                                {cred.notes}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Modal */}
+            {isDialogOpen && (
+                <>
+                    <div
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in"
+                        onClick={handleCloseDialog}
+                    />
+                    <div className="fixed inset-x-4 top-[10%] md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg z-50 animate-slide-up">
+                        <div className="glass-card rounded-2xl p-6 max-h-[80vh] overflow-y-auto">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-[hsl(var(--text-primary))]">
+                                    {editingCredential ? 'Editar Credencial' : 'Nova Credencial'}
+                                </h2>
+                                <button
+                                    onClick={handleCloseDialog}
+                                    className="p-2 rounded-lg hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                        Cliente
+                                    </label>
+                                    <select
+                                        value={formData.clientId}
+                                        onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+                                        className="input-modern"
+                                    >
+                                        <option value="">Selecione o cliente</option>
+                                        {mockClients.map((client) => (
+                                            <option key={client.id} value={client.id}>
+                                                {client.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Título</label>
-                                    <Input
+                                <div>
+                                    <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                        Título
+                                    </label>
+                                    <input
+                                        type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="Ex: Painel Admin, SSH, Banco de Dados..."
+                                        placeholder="Ex: Painel Admin, SSH..."
+                                        className="input-modern"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Usuário</label>
-                                        <Input
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                            Usuário
+                                        </label>
+                                        <input
+                                            type="text"
                                             value={formData.username}
                                             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                            placeholder="username ou email"
+                                            placeholder="username"
+                                            className="input-modern"
                                         />
                                     </div>
-
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Senha</label>
-                                        <Input
+                                    <div>
+                                        <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                            Senha
+                                        </label>
+                                        <input
                                             type="password"
                                             value={formData.password}
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             placeholder="••••••••"
+                                            className="input-modern"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">URL</label>
-                                    <Input
+                                <div>
+                                    <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                        URL
+                                    </label>
+                                    <input
+                                        type="text"
                                         value={formData.url}
                                         onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                                         placeholder="https://..."
+                                        className="input-modern"
                                     />
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Notas</label>
-                                    <Textarea
+                                <div>
+                                    <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                        Notas
+                                    </label>
+                                    <textarea
                                         value={formData.notes}
                                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                         placeholder="Informações adicionais..."
                                         rows={3}
+                                        className="input-modern resize-none"
                                     />
                                 </div>
                             </div>
 
-                            <DialogFooter>
-                                <Button variant="outline" onClick={handleCloseDialog}>
+                            <div className="flex gap-3 mt-6">
+                                <button onClick={handleCloseDialog} className="btn-secondary flex-1">
                                     Cancelar
-                                </Button>
-                                <Button onClick={handleSubmit}>
-                                    {editingCredential ? 'Salvar Alterações' : 'Adicionar'}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-
-                {/* Credentials Grid */}
-                <div className="space-y-6">
-                    {Object.keys(groupedCredentials).length === 0 ? (
-                        <Card>
-                            <CardContent className="py-12 text-center text-[hsl(var(--muted-foreground))]">
-                                Nenhuma credencial encontrada
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        Object.entries(groupedCredentials).map(([clientName, creds]) => (
-                            <div key={clientName} className="space-y-3">
-                                <h3 className="text-sm font-medium text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-                                    <Key className="w-4 h-4" />
-                                    {clientName}
-                                    <Badge variant="secondary">{creds.length}</Badge>
-                                </h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {creds.map((cred) => (
-                                        <Card key={cred.id} className="hover:border-emerald-500/30 transition-colors">
-                                            <CardHeader className="pb-3">
-                                                <div className="flex items-start justify-between">
-                                                    <CardTitle className="text-base">{cred.title}</CardTitle>
-                                                    <div className="flex gap-1">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8"
-                                                            onClick={() => handleOpenDialog(cred)}
-                                                        >
-                                                            <Pencil className="w-3.5 h-3.5" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8"
-                                                            onClick={() => handleDelete(cred.id)}
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3">
-                                                {/* Username */}
-                                                <div className="flex items-center justify-between p-2 rounded-md bg-[hsl(var(--secondary))]/50">
-                                                    <div className="flex items-center gap-2">
-                                                        <User className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                                                        <span className="text-sm font-mono">{cred.username}</span>
-                                                    </div>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-7 w-7"
-                                                        onClick={() => copyToClipboard(cred.username, `user-${cred.id}`)}
-                                                    >
-                                                        {copiedId === `user-${cred.id}` ? (
-                                                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                                        ) : (
-                                                            <Copy className="w-3.5 h-3.5" />
-                                                        )}
-                                                    </Button>
-                                                </div>
-
-                                                {/* Password */}
-                                                <div className="flex items-center justify-between p-2 rounded-md bg-[hsl(var(--secondary))]/50">
-                                                    <div className="flex items-center gap-2">
-                                                        <Lock className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                                                        <span className="text-sm font-mono">
-                                                            {visiblePasswords[cred.id]
-                                                                ? cred.password
-                                                                : maskPassword(cred.password)}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex gap-1">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-7 w-7"
-                                                            onClick={() => togglePasswordVisibility(cred.id)}
-                                                        >
-                                                            {visiblePasswords[cred.id] ? (
-                                                                <EyeOff className="w-3.5 h-3.5" />
-                                                            ) : (
-                                                                <Eye className="w-3.5 h-3.5" />
-                                                            )}
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-7 w-7"
-                                                            onClick={() => copyToClipboard(cred.password, `pass-${cred.id}`)}
-                                                        >
-                                                            {copiedId === `pass-${cred.id}` ? (
-                                                                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                                            ) : (
-                                                                <Copy className="w-3.5 h-3.5" />
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                </div>
-
-                                                {/* URL */}
-                                                {cred.url && (
-                                                    <div className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                                                        <Globe className="w-4 h-4" />
-                                                        <a
-                                                            href={cred.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="hover:text-emerald-400 transition-colors truncate"
-                                                        >
-                                                            {cred.url}
-                                                        </a>
-                                                    </div>
-                                                )}
-
-                                                {/* Notes */}
-                                                {cred.notes && (
-                                                    <p className="text-xs text-[hsl(var(--muted-foreground))] italic">
-                                                        {cred.notes}
-                                                    </p>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
+                                </button>
+                                <button onClick={handleSubmit} className="btn-primary flex-1">
+                                    {editingCredential ? 'Salvar' : 'Adicionar'}
+                                </button>
                             </div>
-                        ))
-                    )}
-                </div>
-            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     )
 }

@@ -1,42 +1,15 @@
 import { useState } from 'react'
-import { Header } from '@/components/layout/Header'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
 import {
     Plus,
     Search,
     Pencil,
     Trash2,
-    Filter,
+    X,
+    Calendar,
+    Building2,
 } from 'lucide-react'
 import type { Client, ClientStatus, ClientPlan } from '@/types'
+import { cn } from '@/lib/utils'
 
 // Mock data
 const initialClients: Client[] = [
@@ -100,10 +73,10 @@ const initialClients: Client[] = [
     },
 ]
 
-const statusConfig: Record<ClientStatus, { label: string; variant: 'success' | 'warning' | 'danger' }> = {
-    active: { label: 'Ativo', variant: 'success' },
-    blocked: { label: 'Bloqueado', variant: 'warning' },
-    cancelled: { label: 'Cancelado', variant: 'danger' },
+const statusConfig: Record<ClientStatus, { label: string; class: string }> = {
+    active: { label: 'Ativo', class: 'badge-success' },
+    blocked: { label: 'Bloqueado', class: 'badge-warning' },
+    cancelled: { label: 'Cancelado', class: 'badge-danger' },
 }
 
 const planConfig: Record<ClientPlan, { label: string }> = {
@@ -116,7 +89,7 @@ function formatDate(dateString: string) {
     return new Intl.DateTimeFormat('pt-BR', {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric',
+        year: '2-digit',
     }).format(new Date(dateString))
 }
 
@@ -192,7 +165,6 @@ export function Clients() {
         const now = new Date().toISOString()
 
         if (editingClient) {
-            // Update existing client
             setClients(clients.map((c) =>
                 c.id === editingClient.id
                     ? {
@@ -204,7 +176,6 @@ export function Clients() {
                     : c
             ))
         } else {
-            // Create new client
             const newClient: Client = {
                 id: Date.now().toString(),
                 name: formData.name,
@@ -235,257 +206,368 @@ export function Clients() {
         .reduce((sum, c) => sum + c.monthlyValue, 0)
 
     return (
-        <div className="flex flex-col h-full">
-            <Header
-                title="Carteira de Clientes"
-                description="Gerencie seus clientes e contratos"
-            />
+        <div className="flex flex-col min-h-full">
+            {/* Header */}
+            <header className="sticky top-0 z-10 glass px-4 md:px-6 py-4">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--text-primary))]">
+                                Clientes
+                            </h1>
+                            <p className="text-sm text-[hsl(var(--text-secondary))] hidden md:block">
+                                Gerencie sua carteira de clientes
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => handleOpenDialog()}
+                            className="btn-primary text-sm touch-target"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span className="hidden sm:inline">Novo Cliente</span>
+                        </button>
+                    </div>
 
-            <div className="flex-1 p-6 space-y-6 overflow-auto">
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
-                                Total de Clientes
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{clients.length}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
-                                Clientes Ativos
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-emerald-400">{activeCount}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-[hsl(var(--muted-foreground))]">
-                                MRR Total
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(totalMRR)}</div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Filters and Actions */}
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                    <div className="flex flex-1 gap-3 w-full sm:w-auto">
-                        <div className="relative flex-1 max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                            <Input
+                    {/* Search and Filter */}
+                    <div className="flex gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--text-muted))]" />
+                            <input
+                                type="text"
                                 placeholder="Buscar cliente..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9"
+                                className="input-modern pl-10"
                             />
                         </div>
-                        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ClientStatus | 'all')}>
-                            <SelectTrigger className="w-40">
-                                <Filter className="w-4 h-4 mr-2" />
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos</SelectItem>
-                                <SelectItem value="active">Ativos</SelectItem>
-                                <SelectItem value="blocked">Bloqueados</SelectItem>
-                                <SelectItem value="cancelled">Cancelados</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value as ClientStatus | 'all')}
+                            className="input-modern w-auto min-w-[120px]"
+                        >
+                            <option value="all">Todos</option>
+                            <option value="active">Ativos</option>
+                            <option value="blocked">Bloqueados</option>
+                            <option value="cancelled">Cancelados</option>
+                        </select>
                     </div>
+                </div>
+            </header>
 
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button onClick={() => handleOpenDialog()}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Novo Cliente
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
-                            <DialogHeader>
-                                <DialogTitle>
+            {/* Summary Cards */}
+            <div className="px-4 md:px-6 py-4">
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="glass-card rounded-xl p-4 text-center">
+                        <p className="text-2xl font-bold text-[hsl(var(--text-primary))]">{clients.length}</p>
+                        <p className="text-xs text-[hsl(var(--text-muted))]">Total</p>
+                    </div>
+                    <div className="glass-card rounded-xl p-4 text-center">
+                        <p className="text-2xl font-bold text-emerald-400">{activeCount}</p>
+                        <p className="text-xs text-[hsl(var(--text-muted))]">Ativos</p>
+                    </div>
+                    <div className="glass-card rounded-xl p-4 text-center">
+                        <p className="text-lg font-bold text-[hsl(var(--text-primary))]">{formatCurrency(totalMRR)}</p>
+                        <p className="text-xs text-[hsl(var(--text-muted))]">MRR</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Client List */}
+            <div className="flex-1 px-4 md:px-6 pb-6">
+                {/* Desktop Table */}
+                <div className="hidden lg:block glass-card rounded-2xl overflow-hidden">
+                    <table className="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Status</th>
+                                <th>Plano</th>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th className="text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredClients.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6}>
+                                        <div className="empty-state">
+                                            <div className="empty-state-icon">
+                                                <Building2 className="w-6 h-6" />
+                                            </div>
+                                            <p className="empty-state-title">Nenhum cliente encontrado</p>
+                                            <p className="empty-state-description">
+                                                Tente ajustar os filtros ou cadastre um novo cliente.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredClients.map((client) => (
+                                    <tr key={client.id}>
+                                        <td>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(var(--bg-elevated))] to-[hsl(var(--bg-tertiary))] flex items-center justify-center border border-[hsl(var(--border-subtle))]">
+                                                    <span className="text-sm font-semibold text-[hsl(var(--text-secondary))]">
+                                                        {client.name.charAt(0)}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-[hsl(var(--text-primary))]">{client.name}</p>
+                                                    <p className="text-sm text-[hsl(var(--text-muted))]">{client.slug}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className={cn("px-3 py-1 rounded-full text-xs font-medium", statusConfig[client.status].class)}>
+                                                {statusConfig[client.status].label}
+                                            </span>
+                                        </td>
+                                        <td className="text-[hsl(var(--text-secondary))]">
+                                            {planConfig[client.plan].label}
+                                        </td>
+                                        <td className="text-[hsl(var(--text-secondary))]">
+                                            {formatDate(client.dueDate)}
+                                        </td>
+                                        <td className="font-medium text-emerald-400">
+                                            {formatCurrency(client.monthlyValue)}
+                                        </td>
+                                        <td className="text-right">
+                                            <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={() => handleOpenDialog(client)}
+                                                    className="p-2 rounded-lg hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
+                                                >
+                                                    <Pencil className="w-4 h-4 text-[hsl(var(--text-muted))]" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(client.id)}
+                                                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="lg:hidden space-y-3">
+                    {filteredClients.length === 0 ? (
+                        <div className="glass-card rounded-2xl">
+                            <div className="empty-state">
+                                <div className="empty-state-icon">
+                                    <Building2 className="w-6 h-6" />
+                                </div>
+                                <p className="empty-state-title">Nenhum cliente encontrado</p>
+                                <p className="empty-state-description">
+                                    Tente ajustar os filtros ou cadastre um novo cliente.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        filteredClients.map((client, index) => (
+                            <div
+                                key={client.id}
+                                className={cn(
+                                    "glass-card mobile-card rounded-2xl animate-slide-up",
+                                    `stagger-${Math.min(index + 1, 4)}`
+                                )}
+                                style={{ animationFillMode: 'backwards' }}
+                            >
+                                <div className="mobile-card-header">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[hsl(var(--bg-elevated))] to-[hsl(var(--bg-tertiary))] flex items-center justify-center border border-[hsl(var(--border-subtle))]">
+                                            <span className="text-base font-semibold text-[hsl(var(--text-secondary))]">
+                                                {client.name.charAt(0)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p className="mobile-card-title">{client.name}</p>
+                                            <p className="mobile-card-subtitle">{client.slug}</p>
+                                        </div>
+                                    </div>
+                                    <span className={cn("px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap", statusConfig[client.status].class)}>
+                                        {statusConfig[client.status].label}
+                                    </span>
+                                </div>
+
+                                <div className="mobile-card-meta">
+                                    <div className="mobile-card-meta-item">
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        <span>{formatDate(client.dueDate)}</span>
+                                    </div>
+                                    <div className="mobile-card-meta-item">
+                                        <span className="font-medium text-emerald-400">{formatCurrency(client.monthlyValue)}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between mt-4 pt-4 border-t border-[hsl(var(--border-subtle)/0.5)]">
+                                    <span className="text-xs text-[hsl(var(--text-muted))]">
+                                        {planConfig[client.plan].label}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleOpenDialog(client)}
+                                            className="p-2 rounded-lg bg-[hsl(var(--bg-tertiary))] hover:bg-[hsl(var(--bg-elevated))] transition-colors touch-target"
+                                        >
+                                            <Pencil className="w-4 h-4 text-[hsl(var(--text-muted))]" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(client.id)}
+                                            className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors touch-target"
+                                        >
+                                            <Trash2 className="w-4 h-4 text-red-400" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* Modal */}
+            {isDialogOpen && (
+                <>
+                    <div
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in"
+                        onClick={handleCloseDialog}
+                    />
+                    <div className="fixed inset-x-4 top-[10%] md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg z-50 animate-slide-up">
+                        <div className="glass-card rounded-2xl p-6 max-h-[80vh] overflow-y-auto">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-[hsl(var(--text-primary))]">
                                     {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
-                                </DialogTitle>
-                                <DialogDescription>
-                                    {editingClient
-                                        ? 'Atualize as informações do cliente.'
-                                        : 'Preencha os dados para cadastrar um novo cliente.'}
-                                </DialogDescription>
-                            </DialogHeader>
+                                </h2>
+                                <button
+                                    onClick={handleCloseDialog}
+                                    className="p-2 rounded-lg hover:bg-[hsl(var(--bg-tertiary))] transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
 
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Nome da Empresa</label>
-                                    <Input
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                        Nome da Empresa
+                                    </label>
+                                    <input
+                                        type="text"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="Ex: Tech Solutions"
+                                        className="input-modern"
                                     />
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Slug / ID</label>
-                                    <Input
+                                <div>
+                                    <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                        Slug / ID
+                                    </label>
+                                    <input
+                                        type="text"
                                         value={formData.slug}
                                         onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                                         placeholder="Ex: tech-solutions"
+                                        className="input-modern"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Status</label>
-                                        <Select
+                                    <div>
+                                        <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                            Status
+                                        </label>
+                                        <select
                                             value={formData.status}
-                                            onValueChange={(v) => setFormData({ ...formData, status: v as ClientStatus })}
+                                            onChange={(e) => setFormData({ ...formData, status: e.target.value as ClientStatus })}
+                                            className="input-modern"
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="active">Ativo</SelectItem>
-                                                <SelectItem value="blocked">Bloqueado</SelectItem>
-                                                <SelectItem value="cancelled">Cancelado</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                            <option value="active">Ativo</option>
+                                            <option value="blocked">Bloqueado</option>
+                                            <option value="cancelled">Cancelado</option>
+                                        </select>
                                     </div>
-
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Plano</label>
-                                        <Select
+                                    <div>
+                                        <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                            Plano
+                                        </label>
+                                        <select
                                             value={formData.plan}
-                                            onValueChange={(v) => setFormData({ ...formData, plan: v as ClientPlan })}
+                                            onChange={(e) => setFormData({ ...formData, plan: e.target.value as ClientPlan })}
+                                            className="input-modern"
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="essential">Essencial</SelectItem>
-                                                <SelectItem value="professional">Profissional</SelectItem>
-                                                <SelectItem value="enterprise">Enterprise</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                            <option value="essential">Essencial</option>
+                                            <option value="professional">Profissional</option>
+                                            <option value="enterprise">Enterprise</option>
+                                        </select>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Data de Vencimento</label>
-                                        <Input
+                                    <div>
+                                        <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                            Vencimento
+                                        </label>
+                                        <input
                                             type="date"
                                             value={formData.dueDate}
                                             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                                            className="input-modern"
                                         />
                                     </div>
-
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Valor Mensal (R$)</label>
-                                        <Input
+                                    <div>
+                                        <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                            Valor (R$)
+                                        </label>
+                                        <input
                                             type="number"
                                             value={formData.monthlyValue}
                                             onChange={(e) => setFormData({ ...formData, monthlyValue: e.target.value })}
                                             placeholder="0.00"
+                                            className="input-modern"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Observações</label>
-                                    <Textarea
+                                <div>
+                                    <label className="block text-sm font-medium text-[hsl(var(--text-secondary))] mb-2">
+                                        Observações
+                                    </label>
+                                    <textarea
                                         value={formData.notes}
                                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                        placeholder="Notas adicionais sobre o cliente..."
+                                        placeholder="Notas adicionais..."
                                         rows={3}
+                                        className="input-modern resize-none"
                                     />
                                 </div>
                             </div>
 
-                            <DialogFooter>
-                                <Button variant="outline" onClick={handleCloseDialog}>
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={handleCloseDialog}
+                                    className="btn-secondary flex-1"
+                                >
                                     Cancelar
-                                </Button>
-                                <Button onClick={handleSubmit}>
-                                    {editingClient ? 'Salvar Alterações' : 'Cadastrar'}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-
-                {/* Clients Table */}
-                <Card>
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Cliente</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Plano</TableHead>
-                                    <TableHead>Vencimento</TableHead>
-                                    <TableHead>Valor</TableHead>
-                                    <TableHead className="text-right">Ações</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredClients.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-[hsl(var(--muted-foreground))]">
-                                            Nenhum cliente encontrado
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    filteredClients.map((client) => (
-                                        <TableRow key={client.id}>
-                                            <TableCell>
-                                                <div>
-                                                    <p className="font-medium">{client.name}</p>
-                                                    <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                                                        {client.slug}
-                                                    </p>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant={statusConfig[client.status].variant}>
-                                                    {statusConfig[client.status].label}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>{planConfig[client.plan].label}</TableCell>
-                                            <TableCell>{formatDate(client.dueDate)}</TableCell>
-                                            <TableCell>{formatCurrency(client.monthlyValue)}</TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleOpenDialog(client)}
-                                                    >
-                                                        <Pencil className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleDelete(client.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4 text-red-400" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
+                                </button>
+                                <button
+                                    onClick={handleSubmit}
+                                    className="btn-primary flex-1"
+                                >
+                                    {editingClient ? 'Salvar' : 'Cadastrar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     )
 }

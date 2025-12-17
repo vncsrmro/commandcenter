@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
     LayoutDashboard,
     Users,
@@ -6,11 +6,10 @@ import {
     DollarSign,
     Settings,
     LogOut,
-    ChevronLeft,
-    ChevronRight
+    Menu,
+    X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 
 const navItems = [
@@ -37,107 +36,126 @@ const navItems = [
 ]
 
 export function Sidebar() {
-    const [collapsed, setCollapsed] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
+    const location = useLocation()
 
     return (
-        <aside
-            className={cn(
-                "flex flex-col h-screen bg-[hsl(var(--card))] border-r border-[hsl(var(--border))] transition-all duration-300",
-                collapsed ? "w-16" : "w-64"
+        <>
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setIsOpen(true)}
+                className="fixed top-4 left-4 z-50 p-2 rounded-xl glass touch-target md:hidden"
+                aria-label="Open menu"
+            >
+                <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Overlay */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden animate-fade-in"
+                    onClick={() => setIsOpen(false)}
+                />
             )}
-        >
-            {/* Logo */}
-            <div className={cn(
-                "flex items-center h-16 px-4 border-b border-[hsl(var(--border))]",
-                collapsed ? "justify-center" : "justify-between"
-            )}>
-                {!collapsed && (
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">P</span>
+
+            {/* Sidebar */}
+            <aside
+                className={cn(
+                    "fixed md:static inset-y-0 left-0 z-50 w-72 glass-card flex flex-col transition-transform duration-300 md:transition-none",
+                    isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+                )}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between h-16 px-5 border-b border-[hsl(var(--border-subtle))]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(var(--accent-primary))] to-[hsl(160_84%_35%)] flex items-center justify-center shadow-lg">
+                            <span className="text-white font-bold text-lg">P</span>
                         </div>
-                        <span className="font-semibold text-[hsl(var(--foreground))]">
-                            PaperX
-                        </span>
+                        <div>
+                            <span className="font-semibold text-[hsl(var(--text-primary))]">
+                                PaperX
+                            </span>
+                            <p className="text-[10px] text-[hsl(var(--text-muted))] uppercase tracking-wider">
+                                Command Center
+                            </p>
+                        </div>
                     </div>
-                )}
-                {collapsed && (
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">P</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex-1 p-3 space-y-1">
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.href}
-                        to={item.href}
-                        className={({ isActive }) =>
-                            cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                                isActive
-                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                    : "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))]",
-                                collapsed && "justify-center px-2"
-                            )
-                        }
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="p-2 rounded-lg hover:bg-[hsl(var(--bg-tertiary))] md:hidden"
+                        aria-label="Close menu"
                     >
-                        <item.icon className="w-5 h-5 shrink-0" />
-                        {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                ))}
-            </nav>
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
 
-            {/* Bottom Section */}
-            <div className="p-3 border-t border-[hsl(var(--border))] space-y-1">
-                <NavLink
-                    to="/settings"
-                    className={({ isActive }) =>
-                        cn(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                            isActive
-                                ? "bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))]"
-                                : "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))]",
-                            collapsed && "justify-center px-2"
+                {/* Navigation */}
+                <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+                    <p className="text-[10px] font-semibold text-[hsl(var(--text-muted))] uppercase tracking-wider px-3 mb-3">
+                        Menu Principal
+                    </p>
+                    {navItems.map((item) => {
+                        const isActive = location.pathname === item.href
+                        return (
+                            <NavLink
+                                key={item.href}
+                                to={item.href}
+                                onClick={() => setIsOpen(false)}
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 touch-target",
+                                    isActive
+                                        ? "bg-gradient-to-r from-[hsl(var(--accent-primary)/0.15)] to-[hsl(var(--accent-primary)/0.05)] text-[hsl(var(--accent-primary))] border border-[hsl(var(--accent-primary)/0.2)]"
+                                        : "text-[hsl(var(--text-secondary))] hover:bg-[hsl(var(--bg-tertiary))] hover:text-[hsl(var(--text-primary))]"
+                                )}
+                            >
+                                <item.icon className={cn(
+                                    "w-5 h-5 shrink-0",
+                                    isActive && "drop-shadow-[0_0_6px_hsl(var(--accent-primary))]"
+                                )} />
+                                <span>{item.title}</span>
+                                {isActive && (
+                                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent-primary))]" />
+                                )}
+                            </NavLink>
                         )
-                    }
-                >
-                    <Settings className="w-5 h-5 shrink-0" />
-                    {!collapsed && <span>Configurações</span>}
-                </NavLink>
+                    })}
+                </nav>
 
-                <button
-                    className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 w-full text-[hsl(var(--muted-foreground))] hover:bg-red-500/10 hover:text-red-400",
-                        collapsed && "justify-center px-2"
-                    )}
-                >
-                    <LogOut className="w-5 h-5 shrink-0" />
-                    {!collapsed && <span>Sair</span>}
-                </button>
+                {/* Bottom Section */}
+                <div className="p-4 border-t border-[hsl(var(--border-subtle))] space-y-1.5">
+                    <NavLink
+                        to="/settings"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[hsl(var(--text-secondary))] hover:bg-[hsl(var(--bg-tertiary))] hover:text-[hsl(var(--text-primary))] transition-all duration-200 touch-target"
+                    >
+                        <Settings className="w-5 h-5 shrink-0" />
+                        <span>Configurações</span>
+                    </NavLink>
 
-                {/* Collapse Toggle */}
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setCollapsed(!collapsed)}
-                    className={cn(
-                        "w-full mt-2 text-[hsl(var(--muted-foreground))]",
-                        collapsed && "px-2"
-                    )}
-                >
-                    {collapsed ? (
-                        <ChevronRight className="w-4 h-4" />
-                    ) : (
-                        <>
-                            <ChevronLeft className="w-4 h-4 mr-2" />
-                            <span>Recolher</span>
-                        </>
-                    )}
-                </Button>
-            </div>
-        </aside>
+                    <button
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full text-[hsl(var(--text-secondary))] hover:bg-[hsl(var(--accent-danger)/0.1)] hover:text-[hsl(var(--accent-danger))] transition-all duration-200 touch-target"
+                    >
+                        <LogOut className="w-5 h-5 shrink-0" />
+                        <span>Sair</span>
+                    </button>
+                </div>
+
+                {/* User Card */}
+                <div className="p-4 border-t border-[hsl(var(--border-subtle))]">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-[hsl(var(--bg-tertiary))]">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(var(--accent-secondary))] to-[hsl(262_83%_48%)] flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">VR</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-[hsl(var(--text-primary))] truncate">
+                                Admin
+                            </p>
+                            <p className="text-xs text-[hsl(var(--text-muted))] truncate">
+                                admin@paperx.io
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </>
     )
 }
