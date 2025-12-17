@@ -1,39 +1,80 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { Link, useLocation, Outlet } from 'react-router-dom'
+import {
+    PieChart,
+    Users,
+    Wallet,
+    Shield,
+    Menu
+} from 'lucide-react'
+import { Sidebar } from './Sidebar'
 
 export function MainLayout() {
     const location = useLocation()
-    const navigate = useNavigate()
-    const isDashboard = location.pathname === '/'
+
+    const navItems = [
+        { path: '/', label: 'Visão Geral', icon: PieChart },
+        { path: '/clients', label: 'Clientes', icon: Users },
+        { path: '/financial', label: 'Finanças', icon: Wallet },
+        { path: '/vault', label: 'Cofre', icon: Shield },
+    ]
 
     return (
-        <div className="min-h-screen flex flex-col items-center py-6 px-4 md:py-10">
-            {/* Mobile Back Button (Clean) */}
-            {!isDashboard && (
-                <div className="w-full max-w-6xl mb-4 flex items-center">
-                    <button
-                        onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-white/10 px-4 py-2 rounded-full backdrop-blur-md"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                        <span className="font-medium">Início</span>
-                    </button>
-                </div>
-            )}
+        <div className="min-h-screen bg-[#09090b] text-[#fafafa] flex">
 
-            {/* Main Content Area - Max width for desktop */}
-            <main className="w-full max-w-6xl animate-pop">
-                <Outlet />
+            {/* Desktop Sidebar */}
+            <Sidebar />
+
+            {/* Main Content Wrapper */}
+            <main className="flex-1 min-w-0 md:pl-64 flex flex-col min-h-screen transition-all duration-300">
+
+                {/* Mobile Header (Only visible on mobile) */}
+                <div className="md:hidden h-14 border-b border-[#27272a] flex items-center justify-between px-4 bg-[#09090b]/80 backdrop-blur sticky top-0 z-40">
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
+                            <PieChart className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span className="font-bold text-sm tracking-tight text-white">PaperX</span>
+                    </div>
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 ring-1 ring-[#27272a]" />
+                </div>
+
+                {/* Page Content */}
+                <div className="p-4 md:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-8 animate-enter">
+                    <Outlet />
+                </div>
+
             </main>
 
-            {/* Footer Branding */}
-            <footer className="mt-12 text-center">
-                <p className="text-[11px] text-white/30 font-medium">
-                    Desenvolvido com 💗 pela InovaSys
-                    <br />
-                    <a href="https://inovasys.digital" target="_blank" className="hover:text-white/50 transition-colors">inovasys.digital</a>
-                </p>
-            </footer>
+            {/* Mobile Tab Bar (Fixed Bottom) */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#09090b]/90 backdrop-blur-xl border-t border-[#27272a] pb-safe z-50">
+                <div className="flex items-center justify-around h-16">
+                    {navItems.map(item => {
+                        const isActive = location.pathname === item.path
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className="flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-transform"
+                            >
+                                <item.icon
+                                    strokeWidth={isActive ? 2.5 : 2}
+                                    className={`w-5 h-5 transition-colors ${isActive ? 'text-blue-500' : 'text-[#71717a]'}`}
+                                />
+                                <span className={`text-[10px] font-medium ${isActive ? 'text-blue-500' : 'text-[#71717a]'}`}>
+                                    {item.label}
+                                </span>
+                            </Link>
+                        )
+                    })}
+                    <Link
+                        to="/settings"
+                        className="flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-transform"
+                    >
+                        <Menu className="w-5 h-5 text-[#71717a]" />
+                        <span className="text-[10px] font-medium text-[#71717a]">Mais</span>
+                    </Link>
+                </div>
+            </nav>
         </div>
     )
 }

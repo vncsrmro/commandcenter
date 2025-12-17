@@ -1,37 +1,37 @@
 /* ============================================
-   PaperX "iCloud OS" Design System
-   Deep, Glassy, Fluid, Premium
+   PaperX "Pro" Design System
+   Functional, High-Contrast, Data-First
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Wallpaper Gradient inspired by iCloud Web */
-  --wallpaper-start: #007aff;
-  --wallpaper-mid: #0040dd;
-  --wallpaper-end: #001542;
+  /* Functional Palette - "Pro" High Contrast */
+  --bg-app: #09090b;       /* Zinc 950 */
+  --bg-surface: #101012;   /* Slightly lighter than app bg for distinct surfaces */
+  --bg-surface-hover: #18181b; /* Zinc 900 */
 
-  /* Glass Widgets */
-  --widget-bg: rgba(30, 30, 35, 0.75);
-  --widget-border: rgba(255, 255, 255, 0.12);
-  --widget-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  --border-subtle: #27272a;    /* Zinc 800 */
+  --border-highlight: #3f3f46; /* Zinc 700 */
 
-  /* Text */
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-tertiary: rgba(255, 255, 255, 0.45);
+  /* Brand Accents - Professional Blue (Indigo-ish) */
+  --brand-primary: #3b82f6;
+  --brand-glow: rgba(59, 130, 246, 0.1);
 
-  /* App Icons Colors */
-  --icon-blue: linear-gradient(180deg, #4dafff 0%, #0a84ff 100%);
-  --icon-green: linear-gradient(180deg, #66d476 0%, #30d158 100%);
-  --icon-orange: linear-gradient(180deg, #ffb340 0%, #ff9f0a 100%);
-  --icon-red: linear-gradient(180deg, #ff6b62 0%, #ff453a 100%);
-  --icon-gray: linear-gradient(180deg, #8e8e93 0%, #636366 100%);
+  /* Semantic / Text */
+  --text-main: #fafafa;    /* Zinc 50 */
+  --text-muted: #a1a1aa;   /* Zinc 400 */
+  --text-dim: #52525b;     /* Zinc 600 */
 
-  /* Spacing */
-  --radius-widget: 24px;
-  --radius-app: 18px;
+  /* Status Colors (Muted/Professional) */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+
+  /* Spacing & Radii */
+  --radius-card: 8px;      /* Tighter radius for "Technical/Pro" feel */
+  --radius-sm: 4px;        /* Very tight */
 }
 
 /* ============================================
@@ -41,219 +41,63 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+body {
   margin: 0;
-  padding: 0;
-}
-
-html,
-body {
-  height: 100%;
-  overflow-x: hidden;
-}
-
-body {
   font-family: 'Inter', -apple-system, sans-serif;
-  color: var(--text-primary);
-  /* Deep Blue Abstract Background */
-  background:
-    radial-gradient(circle at 0% 0%, rgba(30, 80, 255, 0.4) 0%, transparent 50%),
-    radial-gradient(circle at 100% 0%, rgba(100, 200, 255, 0.2) 0%, transparent 40%),
-    linear-gradient(135deg, #023e8a 0%, #001233 100%);
-  background-attachment: fixed;
+  background-color: var(--bg-app);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  accent-color: var(--brand-primary);
 }
 
 /* ============================================
-   Widget Components
+   Components
    ============================================ */
-.widget {
-  background: var(--widget-bg);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid var(--widget-border);
-  border-radius: var(--radius-widget);
-  box-shadow: var(--widget-shadow);
-  color: var(--text-primary);
-  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+/* Pro Card - Minimalist container */
+.pro-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  overflow: hidden;
 }
 
-.widget:active {
-  transform: scale(0.98);
+/* Typography Helpers */
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
-.widget-header {
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.text-value {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
-.widget-title {
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* Mobile Touch Optimizations */
+.touch-target {
+  min-height: 44px;
 }
 
-.widget-content {
-  padding: 16px 20px;
+/* Animations */
+.animate-enter {
+  animation: enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ============================================
-   App Icon Styles
-   ============================================ */
-.app-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-app);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  margin-bottom: 8px;
-  transition: transform 0.2s ease;
-}
-
-.app-icon svg {
-  width: 30px;
-  height: 30px;
-  color: white;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.app-icon:active {
-  transform: scale(0.92);
-  filter: brightness(0.9);
-}
-
-.app-icon-blue {
-  background: var(--icon-blue);
-}
-
-.app-icon-green {
-  background: var(--icon-green);
-}
-
-.app-icon-orange {
-  background: var(--icon-orange);
-}
-
-.app-icon-red {
-  background: var(--icon-red);
-}
-
-.app-icon-gray {
-  background: var(--icon-gray);
-}
-
-.app-grid-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: white;
-}
-
-.app-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  margin-top: 4px;
-}
-
-/* ============================================
-   Glass Lists (inside widgets)
-   ============================================ */
-.glass-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-list-item:last-child {
-  border-bottom: none;
-}
-
-.glass-list-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-}
-
-/* ============================================
-   Buttons & Inputs
-   ============================================ */
-.btn-glass {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 99px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  backdrop-filter: blur(10px);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-glass:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.btn-primary {
-  background: #0a84ff;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-weight: 600;
-  width: 100%;
-}
-
-.input-glass {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: white;
-  width: 100%;
-  outline: none;
-}
-
-.input-glass::placeholder {
-  color: var(--text-tertiary);
-}
-
-.input-glass:focus {
-  background: rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* ============================================
-   Animations
-   ============================================ */
-@keyframes popIn {
-  0% {
+@keyframes enter {
+  from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(8px);
   }
 
-  100% {
+  to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
-.animate-pop {
-  animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
 }
